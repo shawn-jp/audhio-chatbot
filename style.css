@@ -1,0 +1,17 @@
+body {
+  font-family: sans-serif;
+  text-align: center;
+  margin: 40px;
+}
+#rec-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+#rec-icon {
+  width: 120px;
+  height: 50px;
+}
+#text-form {
+  margin-top: 20px;
+}
