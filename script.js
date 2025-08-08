@@ -1,41 +1,61 @@
-const recBtn = document.getElementById("rec-btn");
-const recIcon = document.getElementById("rec-icon");
-const textForm = document.getElementById("text-form");
+const recButton = document.getElementById("rec-button");
 const textInput = document.getElementById("text-input");
-const responseContainer = document.getElementById("response-container");
+const sendTextBtn = document.getElementById("send-text");
+const chatLog = document.getElementById("chat-log");
 
-let isRecording = false;
+let mediaRecorder;
+let audioChunks = [];
 
-recBtn.addEventListener("mousedown", startRecording);
-recBtn.addEventListener("mouseup", stopRecording);
-recBtn.addEventListener("touchstart", startRecording);
-recBtn.addEventListener("touchend", stopRecording);
-
-function startRecording() {
-  if (isRecording) return;
-  isRecording = true;
-  recIcon.src = "rec_recording.png";
-  console.log("録音開始（ダミー）");
-  // TODO: 実録音ロジックを挿入
+function addChatEntry(role, text) {
+  const div = document.createElement("div");
+  div.className = role;
+  div.innerText = text;
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
 }
 
-function stopRecording() {
-  if (!isRecording) return;
-  isRecording = false;
-  recIcon.src = "rec_idle.png";
-  console.log("録音終了＆送信（ダミー）");
-  // TODO: 音声データ送信処理
+function speak(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'ja-JP';
+  window.speechSynthesis.speak(utterance);
 }
 
-textForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
+recButton.addEventListener("mousedown", async () => {
+  recButton.src = "rec_recording.png";
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  mediaRecorder = new MediaRecorder(stream);
+  audioChunks = [];
+  mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+  mediaRecorder.onstop = async () => {
+    const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+    const formData = new FormData();
+    formData.append("audio", audioBlob);
+    const res = await fetch("/api/audio", { method: "POST", body: formData });
+    const data = await res.json();
+    addChatEntry("assistant", data.reply);
+    speak(data.reply);
+  };
+  mediaRecorder.start();
+});
+
+recButton.addEventListener("mouseup", () => {
+  recButton.src = "rec.png";
+  if (mediaRecorder && mediaRecorder.state !== "inactive") {
+    mediaRecorder.stop();
+  }
+});
+
+sendTextBtn.addEventListener("click", async () => {
   const text = textInput.value.trim();
   if (!text) return;
-  const response = await fetch("/chat", {
+  addChatEntry("user", text);
+  textInput.value = "";
+  const res = await fetch("/api/text", {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({text})
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text })
   });
-  const data = await response.json();
-  responseContainer.innerText = data.reply;
+  const data = await res.json();
+  addChatEntry("assistant", data.reply);
+  speak(data.reply);
 });

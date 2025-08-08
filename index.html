@@ -1,20 +1,18 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>音声チャットボット</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>音声チャットボット</h1>
-  <button id="rec-btn">
-    <img src="rec_idle.png" id="rec-icon" />
-  </button>
-  <form id="text-form">
-    <input type="text" id="text-input" placeholder="テキストで質問" />
-    <button type="submit">送信</button>
-  </form>
-  <div id="response-container"></div>
+  <div id="chat-log"></div>
+  <div id="controls">
+    <img id="rec-button" src="rec.png" alt="REC" />
+    <input type="text" id="text-input" placeholder="メッセージを入力..." />
+    <button id="send-text">送信</button>
+  </div>
   <script src="script.js"></script>
 </body>
 </html>
